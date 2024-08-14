@@ -12,7 +12,7 @@ def extract_office_data(source_folder_path, target_folder_name):
 
     with open(os.path.join(target_folder_path, 'office.csv'), mode='w', newline='', encoding='utf-8') as csv_file:
         csv_writer = csv.writer(csv_file)
-        csv_writer.writerow(['folder_name', 'office_version'])
+        csv_writer.writerow(['HostName', 'office_version'])
 
         for folder_name in folder_names:
             file_path = os.path.join(source_folder_path, folder_name, 'productlist.log')
@@ -21,7 +21,7 @@ def extract_office_data(source_folder_path, target_folder_name):
                 csv_writer.writerow([folder_name, 'None'])
                 continue
 
-            with open(file_path, 'r', encoding='utf-16') as log_file:
+            with open(file_path, 'r', encoding='utf-16',errors='ignore') as log_file:
                 lines = log_file.readlines()
 
                 office_info = None
@@ -29,6 +29,9 @@ def extract_office_data(source_folder_path, target_folder_name):
                    'Microsoft Office Standard ',
                     'Office 16 Click-to-Run',
                 "Microsoft Office Professional Plus",
+                'Office 15 Click-to-Run'
+                
+                
                     ]
 
                 for line in lines:

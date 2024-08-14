@@ -16,14 +16,14 @@ def convert_log_to_csv(source_folder_path, target_folder_name):
         target_csv_path = os.path.join(target_folder_path, csv_file_name)
 
         if not os.path.exists(file_path):
-            with open(target_csv_path, mode='w', newline='', encoding='utf-8') as csv_file:
+            with open(target_csv_path, mode='w', newline='', encoding='utf-8',errors='ignore') as csv_file:
                 csv_writer = csv.writer(csv_file)
                 csv_writer.writerow(['Caption', 'IdentifyingNumber', 'Name', 'Vendor', 'Version'])
                 csv_writer.writerow(['None', 'None', 'None', 'None', 'None'])
             print(f"找不到 productlist.log，已生成 'None'。")
             continue
 
-        with open(file_path, 'r', encoding='utf-16') as log_file:
+        with open(file_path, 'r', encoding='utf-16',errors='ignore') as log_file:
             lines = log_file.readlines()
 
         with open(target_csv_path, mode='w', newline='', encoding='utf-8') as csv_file:

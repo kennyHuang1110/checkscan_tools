@@ -1,8 +1,9 @@
+
 import os
 import csv
 
 def extract_system_info(root_directory, output_csv_path):
-    with open(output_csv_path, mode='w', newline='') as file:
+    with open(output_csv_path, mode='w', newline='', encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(['HostName', '作業系統', '作業系統版本'])
 
@@ -10,7 +11,7 @@ def extract_system_info(root_directory, output_csv_path):
         for filename in filenames:
             if filename.endswith("systeminfo.log"):
                 file_path = os.path.join(dirpath, filename)
-                with open(file_path, 'r',) as file:
+                with open(file_path, 'r',encoding='cp950', errors='replace') as file:
                     log_string = file.read()
 
                 log_lines = log_string.split('\n')
@@ -25,20 +26,19 @@ def extract_system_info(root_directory, output_csv_path):
                     line_parts = line.split(': ')
                     if len(line_parts) == 2:
                         key, value = line_parts[0], line_parts[1].strip()
-                        if key == '主機名稱':
-                            log_info["HostName"] = value
-                        elif key == '作業系統名稱':
+                        if key == 'OS Name' or key==  "作業系統名稱":
                             log_info["作業系統"] = value
-                        elif key == '作業系統版本':
+                        elif key == 'OS Version' or key==  "作業系統版本":
                             version_parts = value.split(' ')
                             log_info["作業系統版本"] = version_parts[3]
 
-                with open(output_csv_path, mode='a', newline='',encoding='utf-8') as file:
+                with open(output_csv_path, mode='a', newline='', encoding='utf-8') as file:
                     writer = csv.writer(file)
-                    writer.writerow([log_info["HostName"] if log_info["HostName"] else 'None', log_info["作業系統"] if log_info["作業系統"] else 'None', log_info["作業系統版本"] if log_info["作業系統版本"] else 'None'])
-                
-# if __name__ == "__main__":
-#     root_directory = 
-#     output_csv_path = 
+                    writer.writerow([os.path.basename(dirpath), log_info["作業系統"] if log_info["作業系統"] else 'None', log_info["作業系統版本"] if log_info["作業系統版本"] else 'None'])
+          
+if __name__ == "__main__" : 
+     
+    root_directory ="檢視S" 
+    output_csv_path = "test"
 
-#     extract_system_info(root_directory, output_csv_path)
+    extract_system_info(root_directory, output_csv_path)
