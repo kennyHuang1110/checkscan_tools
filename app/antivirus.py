@@ -3,52 +3,46 @@ import re
 import os
 from bs4 import BeautifulSoup
 
-def extract_antivirus_data(source_folder_path, target_folder_name):
-    # 目標資料夾路徑
-    target_folder_path = os.path.join(source_folder_path, target_folder_name)
+def extract_antivirus_data(source_folder_path, target_folder_path):
+    """
+    從 productlist.log 和 WindowsUpdateListhtml.log 提取防毒軟體資訊，存為 antivirus.csv。
 
-    # 如果目標資料夾不存在則創建
+    :param source_folder_path: 來源資料夾 (通常為 data/檢視S)
+    :param target_folder_path: 儲存目標資料夾 (通常為 data/檢視antivirus)
+    """
+    # 確保目標資料夾存在
     if not os.path.exists(target_folder_path):
         os.makedirs(target_folder_path)
+        print(f"📂 目標資料夾已創建: {target_folder_path}")
 
-    # 獲取所有資料夾名稱
+    # 設定 CSV 檔案路徑
+    antivirus_csv_path = os.path.join(target_folder_path, 'antivirus.csv')
+
+    # 讀取 source_folder_path 內的所有子資料夾
     folder_names = [name for name in os.listdir(source_folder_path) if os.path.isdir(os.path.join(source_folder_path, name))]
 
-    # 建立並寫入 CSV 檔案
-    antivirus_csv_path = os.path.join(target_folder_path, 'antivirus.csv')
     with open(antivirus_csv_path, mode='w', newline='', encoding='utf-8', errors='replace') as csv_file:
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(['HostName', 'antivirus_version'])
 
         for folder_name in folder_names:
-            antivirus_info = None
+            antivirus_info = None  # 預設為 None
             file_path_productlist = os.path.join(source_folder_path, folder_name, 'productlist.log')
             file_path_windowsupdate = os.path.join(source_folder_path, folder_name, 'WindowsUpdateListhtml.log')
 
-            # 如果 productlist.log 檔案存在，則處理它
+            # 解析 productlist.log
             if os.path.exists(file_path_productlist):
+                print(f"✅ 解析 {file_path_productlist}...")
                 with open(file_path_productlist, 'r', encoding='utf-16', errors='ignore') as log_file:
                     lines = log_file.readlines()
 
-                    # 過濾條件列表
                     filter_conditions = [
-                        "Trend Micro",
-                        'OfficeScan',
-                        'Azure Advanced Threat',
-                        'WithSecure',
-                        "卡巴斯基",
-                        "McAfee",
-                        "ESET",
-                        "F-Secure",
-                        "Avira",
-                        "Avast",
-                        'Xcitium',
-                        "COMODO",
-                        "Symantec",
-                        "Sophos Endpoint"
+                        "Trend Micro", "OfficeScan", "Azure Advanced Threat", 
+                        "Kaspersky Endpoint", "McAfee", "ESET", "F-Secure", 
+                        "Avira", "Avast", "Xcitium", "COMODO", "Symantec", 
+                        "Sophos Endpoint", "Trellix", "ahnLab","PC-cillin"
                     ]
 
-                    # 解析日誌檔案並匹配相應的資訊
                     for line in lines:
                         clean_line = line.strip()
                         if clean_line and not clean_line.startswith('Caption'):
@@ -63,14 +57,12 @@ def extract_antivirus_data(source_folder_path, target_folder_name):
                                 else:
                                     continue
                                 break
-                    # 寫入CSV文件
-                    csv_writer.writerow([folder_name, antivirus_info if antivirus_info else 'None'])
 
-            # 如果 productlist.log 檔案不存在或沒有相關資訊，則處理 WindowsUpdateListhtml.log 檔案
-            elif os.path.exists(file_path_windowsupdate):
+            # 解析 WindowsUpdateListhtml.log
+            if antivirus_info is None and os.path.exists(file_path_windowsupdate):
+                print(f"✅ 解析 {file_path_windowsupdate}...")
                 with open(file_path_windowsupdate, 'r', encoding="utf-8", errors='ignore') as log_file:
                     html_content = log_file.read()
-
                     soup = BeautifulSoup(html_content, "html.parser")
                     table = soup.find("table")
 
@@ -84,20 +76,15 @@ def extract_antivirus_data(source_folder_path, target_folder_name):
                                 if "Microsoft Defender Antivirus" in name:
                                     version_match = re.search(r'(\d+\.\d+\.\d+\.\d+)', description)
                                     if version_match:
-                                        first_version = version_match.group(0)
-                                        antivirus_info = f"Microsoft Defender Antivirus {first_version}"
+                                        antivirus_info = f"Microsoft Defender Antivirus {version_match.group(0)}"
                                         break
 
-                    if not antivirus_info:
-                        antivirus_info = 'None'
+            # 若無任何資訊，則填入 'None'
+            if antivirus_info is None:
+                print(f"⚠️ {folder_name} 沒有找到防毒軟體資訊，填入 'None'。")
+                antivirus_info = 'None'
 
-                    # 寫入CSV文件
-                    csv_writer.writerow([folder_name, antivirus_info])
+            # 寫入 CSV
+            csv_writer.writerow([folder_name, antivirus_info])
 
-            # 如果兩個檔案都不存在，則寫入'None'
-            else:
-                csv_writer.writerow([folder_name, 'None'])
-
-    # 印出訊息
-    print(f"已生成 {antivirus_csv_path} 檔。")
-
+    print(f"✅ 已生成 {antivirus_csv_path}")
