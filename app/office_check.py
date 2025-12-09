@@ -2,74 +2,197 @@ import csv
 import re
 import os
 
+
+# ==========================================
+# Office Version Classification
+# ==========================================
+def classify_office_version(ver):
+    try:
+        build = int(ver.split('.')[2])
+    except:
+        return "Unknown"
+
+    if   4000  <= build < 10000:   return "Office 2016"
+    elif 10000 <= build < 14000:   return "Office 2019"
+    elif 14000 <= build < 15000:   return "Office 2021"
+    elif 15000 <= build < 20000:   return "Microsoft 365"
+    else: return "Unknown"
+
+
+# ==========================================
+# Main
+# ==========================================
 def extract_software_data(source_folder_path, target_folder_path):
-    """
-    從 productlist.log 提取 Microsoft Office、Flash、Adobe Reader 等軟體資訊，並存為 office.csv。
-    
-    :param source_folder_path: 來源資料夾 (通常為 data/檢視S)
-    :param target_folder_path: 儲存目標資料夾 (通常為 data/檢視productlist_OFFICE)
-    """
-    # 確保目標資料夾存在
+
     if not os.path.exists(target_folder_path):
         os.makedirs(target_folder_path)
-        print(f"📂 目標資料夾已創建: {target_folder_path}")
 
-    # 設定 CSV 檔案路徑
-    office_csv_path = os.path.join(target_folder_path, 'office.csv')
+    output_csv = os.path.join(target_folder_path, 'office.csv')
 
-    # 讀取 source_folder_path 內的所有子資料夾
-    folder_names = [name for name in os.listdir(source_folder_path) if os.path.isdir(os.path.join(source_folder_path, name))]
+    folders = [
+        name for name in os.listdir(source_folder_path)
+        if os.path.isdir(os.path.join(source_folder_path, name))
+    ]
 
-    with open(office_csv_path, mode='w', newline='', encoding='utf-8') as csv_file:
-        csv_writer = csv.writer(csv_file)
-        csv_writer.writerow(['HostName', 'office_version', 'flash_version', 'acrobat_version', 'reader_version', 'java_version'])
+    with open(output_csv, mode='w', newline='', encoding='utf-8') as f:
+        csv_writer = csv.writer(f)
 
-        for folder_name in folder_names:
-            file_path = os.path.join(source_folder_path, folder_name, 'productlist.log')
+        csv_writer.writerow([
+            'HostName',
+            'office_from_productlist',
+            'office_from_clicktorun',
+            'office_from_versionlog',
+            'VersionNumber',
+            'Office_Final',
+            'Combined_Version',
+            'Flash',
+            'Acrobat',
+            'Reader',
+            'Java',
+            'ClickToRun_ID'
+        ])
 
-            # 預設所有軟體的資訊為 'None'
-            software_info = {
-                'office': 'None',
-                'flash': 'None',
-                'acrobat': 'None',
-                'reader': 'None',
-                'java': 'None'
-            }
+        for folder in folders:
 
-            if not os.path.exists(file_path):
-                print(f"❌ 找不到 {file_path}，跳過...")
-                csv_writer.writerow([folder_name] + list(software_info.values()))
-                continue
+            pl_path  = os.path.join(source_folder_path, folder, 'productlist.log')
+            ctr_path = os.path.join(source_folder_path, folder, 'ClickToRun.log')
+            ver_path = os.path.join(source_folder_path, folder, 'officeversion.log')
 
-            print(f"✅ 解析 {file_path}...")
+            office_from_pl  = 'None'
+            office_from_ctr = 'None'
+            office_from_ver = 'None'
+            version_number  = 'None'
+            ctr_id = 'None'
+            flash  = 'None'
+            acrobat = 'None'
+            reader = 'None'
+            java   = 'None'
 
-            with open(file_path, 'r', encoding='utf-16', errors='ignore') as log_file:
-                lines = log_file.readlines()
+            # ========================
+            # productlist.log
+            # ========================
+            if os.path.exists(pl_path):
+                with open(pl_path, 'r', encoding='utf-16', errors='ignore') as f1:
+                    for line in f1:
+                        clean = line.strip()
+                        if clean and not clean.startswith('Caption'):
+                            arr = re.split(r'\s{2,}', clean)
+                            if len(arr) >= 5:
+                                name = arr[2].strip()
+                                ver  = arr[4].strip()
 
-                filter_conditions = {
-                    'office': ['Microsoft Office Standard', 'Office 16 Click-to-Run', 
-                               'Microsoft Office Professional Plus', 'Office 15 Click-to-Run'],
-                    'flash': ['Adobe Flash'],
-                    'reader': ['Adobe Acrobat Reader'],
-                    'acrobat': ['Adobe Acrobat'],
-                    'java': ['Java']
-                }
+                                # Office
+                                if ('Microsoft Office' in name) or ('Office 16' in name):
+                                    office_from_pl = ver
 
-                for line in lines:
-                    clean_line = line.strip()
-                    if clean_line and not clean_line.startswith('Caption'):
-                        data = re.split(r'\s{2,}', clean_line)
-                        if len(data) >= 5:
-                            name = data[2].strip()
-                            version = data[4].strip()
-                            for key, conditions in filter_conditions.items():
-                                if any(condition in name for condition in conditions):
-                                    software_info[key] = f"{name} {version}"
-                                    break
+                                # Flash
+                                elif 'Adobe Flash' in name:
+                                    flash = ver
 
-            csv_writer.writerow([folder_name] + list(software_info.values()))
+                                else:
+                                    low = name.lower()
 
-    print(f"✅ 已生成 {office_csv_path}")
+                                    # Reader
+                                    if ('acrobat reader' in low) or ('adobe reader' in low):
+                                        reader = f"{name} {ver}"
 
-# 測試執行
-# extract_software_data("data/檢視S", "data/檢視productlist_OFFICE")
+                                    # Acrobat full
+                                    elif ('acrobat' in low) and ('reader' not in low):
+                                        acrobat = f"{name} {ver}"
+
+                                    # Java
+                                    elif 'java' in low:
+                                        java = ver
+
+
+            # ========================
+            # ClickToRun.log
+            # ========================
+            if os.path.exists(ctr_path):
+                try:
+                    lines = open(ctr_path, 'r', encoding='utf-16').readlines()
+                except UnicodeError:
+                    lines = open(ctr_path, 'r', encoding='utf-8', errors='ignore').readlines()
+
+                for ln in lines:
+                    if 'ProductReleaseIds' in ln:
+                        m = re.search(r'ProductReleaseIds\s+\S+\s+(\S+)', ln)
+                        if m:
+                            ctr_id = m.group(1)
+                            office_from_ctr = m.group(1)
+                        break
+
+
+            # ========================
+            # officeversion.log
+            # ========================
+            if os.path.exists(ver_path):
+                with open(ver_path, 'r', encoding='utf-8', errors='ignore') as f2:
+                    text = f2.read()
+
+                m = re.search(r'OFFICE_VER=(.*)', text)
+                if m:
+                    version_number = m.group(1).strip()
+
+                    # 避免「假的 1.0.0.0」
+                    if version_number == "1.0.0.0":
+                        version_number = 'None'
+                    else:
+                        office_from_ver = classify_office_version(version_number)
+
+
+            # =====================================================
+            # FINAL DECISION （你要的最正確邏輯）
+            # =====================================================
+
+            # 1) 優先使用 productlist（只要有就永遠用它）
+            if office_from_pl != "None" and re.match(r'\d+\.\d+\.\d+', office_from_pl):
+                office_final = classify_office_version(office_from_pl)
+                version_out = office_from_pl
+
+            # 2) 次優使用 version_number
+            elif version_number != "None" and re.match(r'\d+\.\d+\.\d+', version_number):
+                office_final = classify_office_version(version_number)
+                version_out = version_number
+
+            # 3) 再來 CTR
+            elif office_from_ctr != "None":
+                office_final = office_from_ctr
+                version_out = office_from_ctr
+
+            # 4) 都沒有
+            else:
+                office_final = "None"
+                version_out = "None"
+
+
+            # =====================================================
+            # Combined Output
+            # =====================================================
+            if office_final != "None" and version_out != "None":
+                combined_version = f"{office_final}   {version_out}"
+            elif office_final != "None":
+                combined_version = office_final
+            else:
+                combined_version = "None"
+
+
+            # ========================
+            # Write CSV
+            # ========================
+            csv_writer.writerow([
+                folder,
+                office_from_pl,
+                office_from_ctr,
+                office_from_ver,
+                version_number,
+                office_final,
+                combined_version,
+                flash,
+                acrobat,
+                reader,
+                java,
+                ctr_id
+            ])
+
+    print(f"🔥 完成！輸出在: {output_csv}")
