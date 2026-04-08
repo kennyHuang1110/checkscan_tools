@@ -1,0 +1,63 @@
+keyword,reason
+microsoft visual c++ 2005,VC++ 2005 已 EOL
+microsoft visual c++ 2008,VC++ 2008 已 EOL
+microsoft visual c++ 2010,VC++ 2010 已 EOL
+microsoft visual c++ 2012,VC++ 2012 已 EOL
+microsoft visual c++ 2013,舊版 runtime
+microsoft visual studio 2008,IDE 已 EOL
+microsoft visual studio 2010,IDE 已 EOL
+microsoft visual studio 2012,IDE 已 EOL
+microsoft visual j#,完全淘汰
+help viewer 1.0,舊元件
+help viewer 1.1,舊元件
+.net framework 3.5,舊版 Framework
+.net framework 4.0,已淘汰
+.net framework 4.5,已 EOL
+.net framework 4 multi-targeting pack,舊開發目標套件
+sql server 2008,已 EOL
+sql server 2008 r2,已 EOL
+sql server 2012,已 EOL
+sql server 2012 native client,已 EOL
+sql server 2014,進入延伸支援
+sql server system clr types,舊 CLR component
+sql server compact,已淘汰
+microsoft ole db provider for sql server,舊驅動
+java 6,已 EOL
+java 7,已 EOL
+java 8 update,8 branch outdated
+java auto updater,舊更新機制
+jre 1.6,已 EOL
+jre 1.7,已 EOL
+jdk 1.6,已 EOL
+jdk 1.7,已 EOL
+vmware vsphere client 5,已 EOL
+vmware vsphere client 6.0,已 EOL
+vmware tools 10.0,舊版
+vmware workstation 12,已 EOL
+vmware player 12,已 EOL
+apache 2.2,已 EOL
+apache tomcat 6,已 EOL
+apache tomcat 7,已 EOL
+nginx 1.10,舊版
+openssl 1.0.1,已 EOL
+openssl 1.0.2,已 EOL
+openssh 6,舊版
+php 5,已 EOL
+php 7.0,已 EOL
+php 7.1,已 EOL
+php 7.2,已 EOL
+adobe flash,已淘汰
+shockwave player,已淘汰
+silverlight,已淘汰
+internet explorer 8,已淘汰
+internet explorer 9,已淘汰
+internet explorer 10,已淘汰
+log4j 1.2,已淘汰
+log4j-core 2.0,早期 vulnerable
+struts 1,已淘汰
+struts 2.3,多重大漏洞
+jquery 1,多已知漏洞
+bootstrap 3,舊版
+node.js 8,已 EOL
+node.js 10,已 EOL
+python 2.7,已 EOL

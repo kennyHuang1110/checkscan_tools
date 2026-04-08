@@ -8,15 +8,31 @@ import os
 # ==========================================
 def classify_office_version(ver):
     try:
-        build = int(ver.split('.')[2])
+        parts = ver.split('.')
+        major = int(parts[0])
+        build = int(parts[2])
     except:
         return "Unknown"
 
-    if   4000  <= build < 10000:   return "Office 2016"
-    elif 10000 <= build < 14000:   return "Office 2019"
-    elif 14000 <= build < 15000:   return "Office 2021"
-    elif 15000 <= build < 20000:   return "Microsoft 365"
-    else: return "Unknown"
+    if major == 12:
+        return "Office 2007"
+    elif major == 14:
+        return "Office 2010"
+    elif major == 15:
+        return "Office 2013"
+    elif major == 16:
+        if 4000 <= build < 11000:
+            return "Office 2016"
+        elif 11000 <= build < 13000:
+            return "Office 2019"
+        elif 13000 <= build < 15000:
+            return "Office 2021"
+        elif build >= 15000:
+            return "Microsoft 365"
+        else:
+            return "Office 16.x (Unknown Generation)"
+
+    return "Unknown"
 
 
 # ==========================================
@@ -49,6 +65,7 @@ def extract_software_data(source_folder_path, target_folder_path):
             'Acrobat',
             'Reader',
             'Java',
+            'LibreOffice',
             'ClickToRun_ID'
         ])
 
@@ -67,6 +84,7 @@ def extract_software_data(source_folder_path, target_folder_path):
             acrobat = 'None'
             reader = 'None'
             java   = 'None'
+            libreoffice = 'None'
 
             # ========================
             # productlist.log
@@ -92,8 +110,12 @@ def extract_software_data(source_folder_path, target_folder_path):
                                 else:
                                     low = name.lower()
 
+                                    # LibreOffice
+                                    if 'libreoffice' in low:
+                                        libreoffice = f"{name} {ver}"
+
                                     # Reader
-                                    if ('acrobat reader' in low) or ('adobe reader' in low):
+                                    elif ('acrobat reader' in low) or ('adobe reader' in low):
                                         reader = f"{name} {ver}"
 
                                     # Acrobat full
@@ -103,7 +125,6 @@ def extract_software_data(source_folder_path, target_folder_path):
                                     # Java
                                     elif 'java' in low:
                                         java = ver
-
 
             # ========================
             # ClickToRun.log
@@ -122,7 +143,6 @@ def extract_software_data(source_folder_path, target_folder_path):
                             office_from_ctr = m.group(1)
                         break
 
-
             # ========================
             # officeversion.log
             # ========================
@@ -134,48 +154,36 @@ def extract_software_data(source_folder_path, target_folder_path):
                 if m:
                     version_number = m.group(1).strip()
 
-                    # 避免「假的 1.0.0.0」
                     if version_number == "1.0.0.0":
                         version_number = 'None'
                     else:
                         office_from_ver = classify_office_version(version_number)
 
-
-            # =====================================================
-            # FINAL DECISION （你要的最正確邏輯）
-            # =====================================================
-
-            # 1) 優先使用 productlist（只要有就永遠用它）
+            # ========================
+            # FINAL DECISION
+            # ========================
             if office_from_pl != "None" and re.match(r'\d+\.\d+\.\d+', office_from_pl):
                 office_final = classify_office_version(office_from_pl)
                 version_out = office_from_pl
-
-            # 2) 次優使用 version_number
             elif version_number != "None" and re.match(r'\d+\.\d+\.\d+', version_number):
                 office_final = classify_office_version(version_number)
                 version_out = version_number
-
-            # 3) 再來 CTR
             elif office_from_ctr != "None":
                 office_final = office_from_ctr
                 version_out = office_from_ctr
-
-            # 4) 都沒有
             else:
                 office_final = "None"
                 version_out = "None"
 
-
-            # =====================================================
+            # ========================
             # Combined Output
-            # =====================================================
+            # ========================
             if office_final != "None" and version_out != "None":
                 combined_version = f"{office_final}   {version_out}"
             elif office_final != "None":
                 combined_version = office_final
             else:
                 combined_version = "None"
-
 
             # ========================
             # Write CSV
@@ -192,6 +200,7 @@ def extract_software_data(source_folder_path, target_folder_path):
                 acrobat,
                 reader,
                 java,
+                libreoffice,
                 ctr_id
             ])
 

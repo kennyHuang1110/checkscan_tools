@@ -1,0 +1,13 @@
+keyword,reason
+microsoft visual c++ 2008,Visual C++ 2008 is legacy
+microsoft visual c++ 2010,Visual C++ 2010 is legacy
+microsoft visual c++ 2012,Visual C++ 2012 is legacy
+java 8 update,Java 8 update branch is outdated
+java auto updater,Legacy Java auto-updater component
+vmware vsphere client 6.0,vSphere Client 6.0 is end-of-life
+microsoft visual j#,Visual J# is deprecated
+visual studio 2010,Visual Studio 2010 component is legacy
+sql server 2012 native client,SQL Server 2012 Native Client is legacy
+sql server system clr types,Old SQL CLR Types component
+help viewer 1.1,Help Viewer 1.1 is legacy
+.net framework 4 multi-targeting pack,Old .NET targeting pack

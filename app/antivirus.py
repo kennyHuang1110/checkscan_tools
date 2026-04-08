@@ -40,7 +40,7 @@ def extract_antivirus_data(source_folder_path, target_folder_path):
                         "Trend Micro", "OfficeScan", "Azure Advanced Threat", 
                         "Kaspersky Endpoint", "McAfee", "ESET", "F-Secure", 
                         "Avira", "Avast", "Xcitium", "COMODO", "Symantec", 
-                        "Sophos Endpoint", "Trellix", "ahnLab","PC-cillin","WithSecure"
+                        "Sophos Endpoint", "Trellix", "ahnLab","PC-cillin","WithSecure? Client Security Premium"
                     ]
 
                     for line in lines:
